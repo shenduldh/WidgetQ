@@ -234,7 +234,7 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable制作小组件进行了封�
 1. 还有很多需要改进和增强的地方，现在也是匆匆制作，时间比较短
 2. 还有很多功能没有开发，但不会马上去做（么得空闲）
 3. 有问题可以联系我，但你也可以自己修改
-4. Contact to me at WeChat：liudahungSD
+4. Contact to me at WeChat：liudahuangSD
 
 ## 致谢
 
