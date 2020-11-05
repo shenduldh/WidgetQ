@@ -178,7 +178,7 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable制作小组件进行了封�
 
 按照Scriptable文档仅有6个，如下所示：
 
-- <widget></widget>标签：放置在根标签处，不能缺少，它可以应用的属性如下所示（与Scriptable文档所示一样）
+- \<widget>\</widget>标签：放置在根标签处，不能缺少，它可以应用的属性如下所示（与Scriptable文档所示一样）
 
   - backgroundColor、backgroundGradient、backgroundImage、refreshAfterDate、spacing、url
 
@@ -192,7 +192,7 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable制作小组件进行了封�
 
     该属性在Scriptable是一个方法，你只需如此使用`padding={[1,2,3,4]}`。
 
-- <date>{new Date()}</date>标签：
+- \<date>{new Date()}\</date>标签：
 
   - 在标签之间给该标签添加date参数。
   - font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
@@ -201,7 +201,7 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable制作小组件进行了封�
 
     这几个属性在Scriptable是一个方法，但没有具体参数，所以如此使用`applyTimeStyle`。
 
-- <image>{new Image()}</image> ：
+- \<image>{new Image()}\</image> ：
 
   - 和date一样在内部添加参数。
 
@@ -209,14 +209,14 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable制作小组件进行了封�
 
   - applyFillingContentMode、applyFittingContentMode、centerAlignImage、leftAlignImage、rightAlignImage
 
-- <spacer>length</spacer>：该标签没有属性，在内部填写具体的值即可，如果不填写则相当于addSpacer()。
+- \<spacer>length\</spacer>：该标签没有属性，在内部填写具体的值即可，如果不填写则相当于addSpacer()。
 
-- <stack></stack>：
+- \<stack>\</stack>：
 
   - backgroundColor、backgroundGradient、backgroundImage、borderColor、borderWidth、cornerRadius、size、spacing、url
   - layoutVertically、layoutHorizontally、bottomAlignContent、topAlignContent、centerAlignContent、padding
 
-- <text>text</text>
+- \<text>text\</text>
 
   - 和date一样在内部添加参数，但可和表达式混合，比如`hello{text1}world!{text2}`
   - font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
