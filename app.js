@@ -1,7 +1,6 @@
 const WQ = importModule('core.js').WQ
 const wq = new WQ({
-    data: {
-    },
+    data: {},
     template: {
         small: ``,
         medium: ``,
