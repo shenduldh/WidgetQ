@@ -2,8 +2,6 @@
 
 WidgetQ根据HTML和Vue的一些特性对Scriptable构建小组件进行了封装，旨在帮助开发者快速开发属于自己的小组件。
 
----
-
 ## 环境介绍
 
 ```javascript
@@ -43,7 +41,7 @@ Script.complete()
 
 #### \<date>
 
-- 在标签内部通过表达式{}添加参数。
+- 在标签内部通过表达式 { } 添加参数。
 - 属性：font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
 
 - 方法：applyTimeStyle、applyTimerStyle、applyRelativeStyle、applyOffsetStyle、applyDateStyle、rightAlignText、leftAlignText、centerAlignText
@@ -51,7 +49,7 @@ Script.complete()
 
 #### \<image>
 
-- 在标签内部通过表达式{}添加参数。
+- 在标签内部通过表达式 { } 添加参数。
 
 - 属性：borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url
 
