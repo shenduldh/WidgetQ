@@ -1,11 +1,15 @@
-const WQ = importModule('core.js').WQ
-const wq = new WQ({
-    data: {},
+const WidgetQ=importModule('core')
+
+const wq = new WidgetQ({
+    data: {
+        font: new Font('systemFont', 20)
+    },
     template: {
         small: ``,
         medium: ``,
-        large: ``
+        large: ``,
     }
 })
+
 await wq.show()
 Script.complete()
