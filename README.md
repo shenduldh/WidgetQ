@@ -41,17 +41,14 @@ Script.complete()
 
 #### \<date>
 
-- 在标签内部通过表达式 { } 添加参数。
-- 属性：font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
+- 属性：date、font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
 
 - 方法：applyTimeStyle、applyTimerStyle、applyRelativeStyle、applyOffsetStyle、applyDateStyle、rightAlignText、leftAlignText、centerAlignText
 
 
 #### \<image>
 
-- 在标签内部通过表达式 { } 添加参数。
-
-- 属性：borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url
+- 属性：image、borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url
 
 - 方法：applyFillingContentMode、applyFittingContentMode、centerAlignImage、leftAlignImage、rightAlignImage
 
