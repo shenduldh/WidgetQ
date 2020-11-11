@@ -2,6 +2,7 @@ class WidgetQ {
     constructor(config) {
         this.template = config.template // small、medium、large
         this.data = config.data // ① attrs：{data.example}；② text：{{data.example}}
+        this.component = config.component // { tagName: { props: [], template: ``} , ... }
     }
 
     async show() {
@@ -24,27 +25,31 @@ class WidgetQ {
     }
 
     parse(labelText) {
-        const regexs = {
+        const data = this.data
+        const component = this.component
+        const regexp = {
             matchEndTag: /^<\/\s*([a-zA-Z]+)\s*>/,
             matchStartTag: /^<([a-zA-Z0-9]+)/,
             matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false)|([0-9\.]+)|("[^"]*")|('[^']*')|\{([^\{\}]*)\}))?/,
+            matchFor: /<[^<>]+(for\s*=\s*"\s*([^\s]+)\s*").*>.*<\s*\/[^<>\/]+>/
         }
         let currentParent, last, root, index, match
         let stack = []
 
         labelText = labelText.trim()
+        pretreat() // for：index、key、value；component
         while (last = labelText) {
             if (index = labelText.indexOf('<')) {
                 match = labelText.substring(0, index)
                 handleInner(match)
                 go(index)
             } else {
-                if (match = labelText.match(regexs.matchEndTag)) {
+                if (match = labelText.match(regexp.matchEndTag)) {
                     go(match[0].length)
                     handleEndTag(match)
                     continue
                 }
-                if (match = labelText.match(regexs.matchStartTag)) {
+                if (match = labelText.match(regexp.matchStartTag)) {
                     go(match[0].length)
                     handleStartTag(match)
                     continue
@@ -58,9 +63,54 @@ class WidgetQ {
 
         function go(len) { labelText = labelText.substring(len) }
 
+        function pretreat() {
+            let match
+            while (match = labelText.match(regexp.matchFor)) {
+                const oldStr = match[0]
+                const forStr = match[1]
+                const dataStr = match[2]
+                let newStr = ''
+                let index = 1
+                for (const key in eval(dataStr)) {
+                    newStr = newStr + oldStr.replace(forStr, '')
+                        .replace(/\{\s*?value\s*?\}/g, '{' + dataStr + `['${key}']` + '}')
+                        .replace(/\{\s*?key\s*?\}/g, `{"${key}"}`)
+                        .replace(/\{\s*?index\s*?\}/g, `{${index}}`)
+                    index++
+                }
+                labelText = labelText.replace(oldStr, newStr)
+            }
+            if (component) {
+                for (let tagName in component) {
+                    const pattern = new RegExp(`(<${tagName})(.*?)>[^<>\\/]*?(<\\/\\s*?${tagName}\\s*?>)`)
+                    const props = component[tagName].props
+                    const template = component[tagName].template.trim()
+                    while (match = labelText.match(pattern)) {
+                        let oldStr = match[0]
+                        let newStr = template
+                        let attrs = [...props]
+                        let attr, attrStr = ''
+                        while (attr = match[2].match(regexp.matchAttr)) {
+                            let index = attrs.indexOf(attr[1])
+                            if (index + 1) {
+                                const val = attr[2] || attr[3] || attr[4] || attr[5] || attr[6] || null
+                                newStr = newStr.replace(new RegExp(`\\{\\s*?${attr[1]}\\s*?\\}`, 'g'), `{${val}}`)
+                                attrs.splice(index, 1)
+                            } else { attrStr = attrStr + attr[0] }
+                            match[2] = match[2].substring(attr[0].length)
+                        }
+                        for (let attr of attrs) {
+                            newStr = newStr.replace(new RegExp(`\\{\\s*?${attr}\\s*?\\}`, 'g'), "{''}")
+                        }
+                        labelText = labelText.replace(oldStr, match[1] + attrStr + '>' + newStr + match[3])
+                    }
+                }
+            }
+        }
+
         function handleStartTag(match) {
             let attrMatch, rawAttrs = [], attrs = null
-            while (attrMatch = labelText.match(regexs.matchAttr)) {
+            while (attrMatch = labelText.match(regexp.matchAttr)) {
                 go(attrMatch[0].length)
                 rawAttrs.push(attrMatch)
             }
@@ -119,6 +169,9 @@ class WidgetQ {
         return widget
 
         function handleChild(child, parent) {
+            if (child.attrs && child.attrs.show) {
+                if (!eval(child.attrs.show)) { return }
+            }
             switch (child.tagName) {
                 case 'stack':
                     const stack = parent.addStack()
@@ -145,7 +198,9 @@ class WidgetQ {
                     parent.addSpacer(Number(child.children[0]) || null)
                     break
                 default:
-                    log('wrong tag type.')
+                    if (that.component[child.tagName]) {
+                        child.children.forEach(child => { handleChild(child, parent) })
+                    } else { log('wrong tag type.') }
             }
         }
         function applyAttrs(obj, attrs) {

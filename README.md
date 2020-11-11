@@ -18,6 +18,13 @@ const wq = new Widget({
         small: ``,
         medium: ``,
         large: ``
+    },
+    // 填写自定义组件标签
+    component: {
+        tagName: {
+            props: [],
+            template: ``
+        }
     }
 })
 // 根据template自动创建小组件
@@ -74,3 +81,10 @@ Script.complete()
 3. 表达式的取值：任何，但须注意以下几点。
    - 获取配置数据时，须使用data.example；
    - 给方法传递多参数时，须使用数组[1,2,3,4]。
+4. 增强型属性：
+   - for：`<text for="data.text">{{index}}{{key}}{{value}}</text>`
+   - show：`<text show=true></text>`
+
+### 自定义组件标签
+
+可以在配置config中增添自定义的组件标签，并在模板文本中使用。

@@ -8,6 +8,12 @@ const wq = new WidgetQ({
         small: ``,
         medium: ``,
         large: ``,
+    },
+    component: {
+        tagName: {
+            props: [],
+            template: ``
+        }
     }
 })
 
