@@ -3,6 +3,7 @@ class WidgetQ {
         this.template = config.template // small、medium、large
         this.data = config.data // ① attrs：{data.example}；② text：{{data.example}}
     }
+
     async show() {
         const widgetAST = {
             small: this.parse(this.template.small || ''),
@@ -26,7 +27,7 @@ class WidgetQ {
         const regexs = {
             matchEndTag: /^<\/\s*([a-zA-Z]+)\s*>/,
             matchStartTag: /^<([a-zA-Z0-9]+)/,
-            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false)|([0-9]+)|"([^"]*)"|'([^']*)'|(\{[^\{\}]*\})))?/,
+            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false)|([0-9\.]+)|("[^"]*")|('[^']*')|\{([^\{\}]*)\}))?/,
         }
         let currentParent, last, root, index, match
         let stack = []
@@ -125,8 +126,7 @@ class WidgetQ {
                     child.children.forEach(child => { handleChild(child, stack) })
                     break
                 case 'image':
-                    const image = parent.addImage(eval(child.children[0]))
-                    applyAttrs(image, child.attrs)
+                    applyAttrs(parent.addImage(eval(child.attrs.image)), child.attrs)
                     break
                 case 'text':
                     let match, array = [], str = child.children[0]
@@ -136,12 +136,10 @@ class WidgetQ {
                         str = str.substring(match.index + match[0].length)
                     }
                     array.push(str)
-                    const text = parent.addText(array.join(''))
-                    applyAttrs(text, child.attrs)
+                    applyAttrs(parent.addText(array.join('')), child.attrs)
                     break
                 case 'date':
-                    const date = parent.addDate(eval(child.children[0]))
-                    applyAttrs(date, child.attrs)
+                    applyAttrs(parent.addDate(eval(child.attrs.date)), child.attrs)
                     break
                 case 'spacer':
                     parent.addSpacer(Number(child.children[0]) || null)
@@ -152,12 +150,9 @@ class WidgetQ {
         }
         function applyAttrs(obj, attrs) {
             if (!attrs) { return }
-            for (const key in attrs) {
+            for (let key in attrs) {
                 const func = that.getAttrFunc(key)
-                if (!func) { continue }
-                const match = attrs[key].match(/\{([^\{\}]*)\}/)
-                const val = match ? eval(match[1]) : attrs[key]
-                func.apply(null, [obj].concat(val))
+                if (func) { func.apply(null, [obj].concat(eval(attrs[key]))) }
             }
         }
     }
@@ -166,9 +161,9 @@ class WidgetQ {
         return {
             // property:
             // widget、stack
-            backgroundColor(obj, color) { obj.backgroundColor = color },
-            backgroundGradient(obj, gradient) { obj.backgroundGradient = gradient },
-            backgroundImage(obj, image) { obj.backgroundImage = image },
+            bgColor(obj, color) { obj.backgroundColor = color },
+            bgGrad(obj, gradient) { obj.backgroundGradient = gradient },
+            bgImg(obj, image) { obj.backgroundImage = image },
             spacing(obj, number) { obj.backgroundColor = number },
             // stack
             size(obj, size) { obj.size = size },
@@ -179,12 +174,12 @@ class WidgetQ {
             // text、date
             font(obj, font) { obj.font = font },
             lineLimit(obj, number) { obj.lineLimit = number },
-            minimumScaleFactor(obj, number) { obj.minimumScaleFactor = number },
+            minScale(obj, number) { obj.minimumScaleFactor = number },
             shadowColor(obj, color) { obj.shadowColor = color },
             shadowOffset(obj, offset) { obj.shadowOffset = offset },
             shadowRadius(obj, radius) { obj.shadowRadius = radius },
             textColor(obj, color) { obj.textColor = color },
-            textopacity(obj, opacity) { obj.textopacity = opacity },
+            textOpacity(obj, opacity) { obj.textOpacity = opacity },
             // stack、image
             borderColor(obj, color) { obj.borderColor = color },
             borderWidth(obj, width) { obj.borderWidth = width },
@@ -203,25 +198,25 @@ class WidgetQ {
             topAlignContent(obj) { obj.topAlignContent() },
             centerAlignContent(obj) { obj.centerAlignContent() },
             // stack
-            layoutHorizontally(obj) { obj.layoutHorizontally() },
-            layoutVertically(obj) { obj.layoutVertically() },
+            horizontal(obj) { obj.layoutHorizontally() },
+            vertical(obj) { obj.layoutVertically() },
             // text、date
             centerAlignText(obj) { obj.centerAlignText() },
             leftAlignText(obj) { obj.leftAlignText() },
             rightAlignText(obj) { obj.rightAlignText() },
             // Image
-            applyFillingContentMode(obj) { obj.applyFillingContentMode() },
-            applyFittingContentMode(obj) { obj.applyFittingContentMode() },
+            filling(obj) { obj.applyFillingContentMode() },
+            fitting(obj) { obj.applyFittingContentMode() },
             // Image
             centerAlignImage(obj) { obj.centerAlignImage() },
             leftAlignImage(obj) { obj.leftAlignImage() },
             rightAlignImage(obj) { obj.rightAlignImage() },
             // date
-            applyDateStyle(obj) { obj.applyDateStyle() },
-            applyOffsetStyle(obj) { obj.applyOffsetStyle() },
-            applyRelativeStyle(obj) { obj.applyRelativeStyle() },
-            applyTimerStyle(obj) { obj.applyTimerStyle() },
-            applyTimeStyle(obj) { obj.applyTimeStyle() },
+            dateStyle(obj) { obj.applyDateStyle() },
+            offsetStyle(obj) { obj.applyOffsetStyle() },
+            relativeStyle(obj) { obj.applyRelativeStyle() },
+            timerStyle(obj) { obj.applyTimerStyle() },
+            timeStyle(obj) { obj.applyTimeStyle() },
         }[key]
     }
 
@@ -234,4 +229,5 @@ class WidgetQ {
         return await alert.presentAlert()
     }
 }
+
 module.exports = WidgetQ

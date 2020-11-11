@@ -30,27 +30,27 @@ Script.complete()
 
 ### 标签说明
 
+> 注意：括号内为原属性名称。
+
 #### \<widget>
 
 - 作为根标签，不能缺少。
-
-- 属性：backgroundColor、backgroundGradient、backgroundImage、refreshAfterDate、spacing、url
-
-- 方法：padding
+- 属性：bgColor（backgroundColor）、bgGrad（backgroundGradient）、bgImg（backgroundImage）、refreshAfterDate、spacing、url
+- 方法：padding（setPadding）
 
 
 #### \<date>
 
-- 属性：date、font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
+- 属性：date、font、lineLimit、minScale（minimumScaleFactor）、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
 
-- 方法：applyTimeStyle、applyTimerStyle、applyRelativeStyle、applyOffsetStyle、applyDateStyle、rightAlignText、leftAlignText、centerAlignText
+- 方法：timeStyle（applyTimeStyle）、timerStyle（applyTimerStyle）、relativeStyle（applyRelativeStyle）、offsetStyle（applyOffsetStyle）、dateStyle（applyDateStyle）、rightAlignText、leftAlignText、centerAlignText
 
 
 #### \<image>
 
 - 属性：image、borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url
 
-- 方法：applyFillingContentMode、applyFittingContentMode、centerAlignImage、leftAlignImage、rightAlignImage
+- 方法：filling（applyFillingContentMode）、fitting（applyFittingContentMode）、centerAlignImage、leftAlignImage、rightAlignImage
 
 #### \<spacer>
 
@@ -58,13 +58,13 @@ Script.complete()
 
 #### \<stack>
 
-- 属性：backgroundColor、backgroundGradient、backgroundImage、borderColor、borderWidth、cornerRadius、size、spacing、url
-- 方法：layoutVertically、layoutHorizontally、bottomAlignContent、topAlignContent、centerAlignContent、padding
+- 属性：bgColor（backgroundColor）、bgGrad（backgroundGradient）、bgImg（backgroundImage）、borderColor、borderWidth、cornerRadius、size、spacing、url
+- 方法：vertical（layoutVertically）、horizontal（layoutHorizontally）、bottomAlignContent、topAlignContent、centerAlignContent、padding（setPadding）
 
 #### \<text>
 
 - 在标签内部添加文本。
-- 属性：font、lineLimit、minimumScaleFactor、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
+- 属性：font、lineLimit、minScale（minimumScaleFactor）、shadowColor、shadowOffset、shadowRadius、textColor、textOpacity、url
 - 方法：rightAlignText、leftAlignText、centerAlignText
 
 ### 属性、文本、表达式
