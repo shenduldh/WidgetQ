@@ -1,8 +1,8 @@
-const WidgetQ=importModule('core')
+const WidgetQ = importModule('core')
 
 const wq = new WidgetQ({
     data: {
-        font: new Font('systemFont', 20)
+        example: 'hello'
     },
     template: {
         small: ``,
@@ -10,10 +10,7 @@ const wq = new WidgetQ({
         large: ``,
     },
     component: {
-        tagName: {
-            props: [],
-            template: ``
-        }
+        tagName: ``
     }
 })
 

@@ -1,8 +1,32 @@
+class Context {
+    constructor(data, parentContext) {
+        this.data = data
+        this.parent = parentContext
+    }
+    push(data) {
+        return new Context(data, this)
+    }
+    lookup(path) {
+        let value, index
+        let context = this
+        while (context) {
+            value = context.data
+            index = 0
+            while (value && index < path.length) {
+                value = value[path[index++]]
+            }
+            if (value) break
+            context = context.parent
+        }
+        return value
+    }
+}
+
 class WidgetQ {
     constructor(config) {
         this.template = config.template // small、medium、large
-        this.data = config.data // ① attrs：{data.example}；② text：{{data.example}}
-        this.component = config.component // { tagName: { props: [], template: ``} , ... }
+        this.context = new Context(config.data, null) // ① attrs：{{example}}；② text：{{example}}
+        this.component = config.component // { tagName: `` , ... }
     }
 
     async show() {
@@ -13,7 +37,7 @@ class WidgetQ {
         }
         const type = config.widgetFamily
         if (!type) {
-            let result = await this.generateAlert('预览大小', ['small', 'medium', 'large'])
+            let result = await generateAlert('预览大小', ['small', 'medium', 'large'])
             if (result === 0) { this.render(widgetAST.small).presentSmall() }
             if (result === 1) { this.render(widgetAST.medium).presentMedium() }
             if (result === 2) { this.render(widgetAST.large).presentLarge() }
@@ -25,19 +49,15 @@ class WidgetQ {
     }
 
     parse(labelText) {
-        const data = this.data
-        const component = this.component
         const regexp = {
             matchEndTag: /^<\/\s*([a-zA-Z]+)\s*>/,
             matchStartTag: /^<([a-zA-Z0-9]+)/,
-            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false)|([0-9\.]+)|("[^"]*")|('[^']*')|\{([^\{\}]*)\}))?/,
-            matchFor: /<[^<>]+(for\s*=\s*"\s*([^\s]+)\s*").*>.*<\s*\/[^<>\/]+>/
+            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false|null|undefined|NaN)|([0-9\.]+)|("[^"]*")|('[^']*')|(\{\{[^\{\}]*\}\})))?/
         }
-        let currentParent, last, root, index, match
-        let stack = []
+        let currentParent, last, index, match
+        let stack = [], rootArray = []
 
         labelText = labelText.trim()
-        pretreat() // for：index、key、value；component
         while (last = labelText) {
             if (index = labelText.indexOf('<')) {
                 match = labelText.substring(0, index)
@@ -59,75 +79,39 @@ class WidgetQ {
             if (last === labelText) throw new Error('invalid template：check your template.')
         }
 
-        return root || createTag('widget', null)
+        return rootArray[0] ? rootArray : [createTag('widget', null)]
 
         function go(len) { labelText = labelText.substring(len) }
 
-        function pretreat() {
-            let match
-            while (match = labelText.match(regexp.matchFor)) {
-                const oldStr = match[0]
-                const forStr = match[1]
-                const dataStr = match[2]
-                let newStr = ''
-                let index = 1
-                for (const key in eval(dataStr)) {
-                    newStr = newStr + oldStr.replace(forStr, '')
-                        .replace(/\{\s*?value\s*?\}/g, '{' + dataStr + `['${key}']` + '}')
-                        .replace(/\{\s*?key\s*?\}/g, `{"${key}"}`)
-                        .replace(/\{\s*?index\s*?\}/g, `{${index}}`)
-                    index++
-                }
-                labelText = labelText.replace(oldStr, newStr)
-            }
-            if (component) {
-                for (let tagName in component) {
-                    const pattern = new RegExp(`(<${tagName})(.*?)>[^<>\\/]*?(<\\/\\s*?${tagName}\\s*?>)`)
-                    const props = component[tagName].props
-                    const template = component[tagName].template.trim()
-                    while (match = labelText.match(pattern)) {
-                        let oldStr = match[0]
-                        let newStr = template
-                        let attrs = [...props]
-                        let attr, attrStr = ''
-                        while (attr = match[2].match(regexp.matchAttr)) {
-                            let index = attrs.indexOf(attr[1])
-                            if (index + 1) {
-                                const val = attr[2] || attr[3] || attr[4] || attr[5] || attr[6] || null
-                                newStr = newStr.replace(new RegExp(`\\{\\s*?${attr[1]}\\s*?\\}`, 'g'), `{${val}}`)
-                                attrs.splice(index, 1)
-                            } else { attrStr = attrStr + attr[0] }
-                            match[2] = match[2].substring(attr[0].length)
-                        }
-                        for (let attr of attrs) {
-                            newStr = newStr.replace(new RegExp(`\\{\\s*?${attr}\\s*?\\}`, 'g'), "{''}")
-                        }
-                        labelText = labelText.replace(oldStr, match[1] + attrStr + '>' + newStr + match[3])
-                    }
-                }
-            }
-        }
-
         function handleStartTag(match) {
-            let attrMatch, rawAttrs = [], attrs = null
+            let attrMatch, forEach, show, bind = {}
+            let rawAttrs = [], attrs = null
             while (attrMatch = labelText.match(regexp.matchAttr)) {
-                go(attrMatch[0].length)
                 rawAttrs.push(attrMatch)
+                go(attrMatch[0].length)
             }
             go(labelText.match(/^\s*>/)[0].length)
 
             if (rawAttrs.length !== 0) {
                 attrs = {}
-                rawAttrs.forEach(attr => {
-                    attrs[attr[1]] = attr[2] || attr[3] || attr[4] || attr[5] || attr[6] || null
+                rawAttrs.forEach(e => {
+                    const val = e[2] || e[3] || e[4] || e[5] || e[6] || null
+                    if (e[1] === 'for') { forEach = val; return }
+                    if (e[1] === 'show') { show = val; return }
+                    if (/^\:/.test(e[1])) { bind[e[1].substring(1)] = val; return }
+                    attrs[e[1]] = val
                 })
             }
 
             const tag = createTag(match[1], attrs)
+            if (forEach) tag.for = forEach
+            if (show) tag.show = show
+            if (Object.keys(bind).length > 0) tag.bind = bind
+
             if (currentParent) {
                 currentParent.children.push(tag)
             } else {
-                root = tag
+                rootArray.push(tag)
             }
             stack.push(tag)
             currentParent = tag
@@ -159,56 +143,100 @@ class WidgetQ {
         }
     }
 
-    render(root) {
-        const that = this
-        const data = this.data
-        if (root.tagName !== 'widget') throw new Error('the rootTag must be <widget>.')
-        const widget = new ListWidget()
-        applyAttrs(widget, root.attrs)
-        root.children.forEach(child => { handleChild(child, widget) })
-        return widget
-
-        function handleChild(child, parent) {
-            if (child.attrs && child.attrs.show) {
-                if (!eval(child.attrs.show)) { return }
-            }
-            switch (child.tagName) {
-                case 'stack':
-                    const stack = parent.addStack()
-                    applyAttrs(stack, child.attrs)
-                    child.children.forEach(child => { handleChild(child, stack) })
-                    break
-                case 'image':
-                    applyAttrs(parent.addImage(eval(child.attrs.image)), child.attrs)
-                    break
-                case 'text':
-                    let match, array = [], str = child.children[0]
-                    while (match = str.match(/\{\{([^\{^\}]*)\}\}/)) {
-                        array.push(str.substring(0, match.index))
-                        array.push(eval(match[1]))
-                        str = str.substring(match.index + match[0].length)
-                    }
-                    array.push(str)
-                    applyAttrs(parent.addText(array.join('')), child.attrs)
-                    break
-                case 'date':
-                    applyAttrs(parent.addDate(eval(child.attrs.date)), child.attrs)
-                    break
-                case 'spacer':
-                    parent.addSpacer(Number(child.children[0]) || null)
-                    break
-                default:
-                    if (that.component[child.tagName]) {
-                        child.children.forEach(child => { handleChild(child, parent) })
-                    } else { log('wrong tag type.') }
+    render(rootArray) {
+        const handleFuncSet = {
+            stack(me, parent, ctx) {
+                const stack = parent.addStack()
+                applyAttrs(stack, me.attrs, ctx)
+                me.children.forEach(child => { pretreat(child, stack, ctx) })
+            },
+            image(me, parent, ctx) {
+                applyAttrs(parent.addImage(echo(me.attrs.img, ctx)), me.attrs, ctx)
+            },
+            text(me, parent, ctx) {
+                let match, array = [], str = me.children[0]
+                while (match = str.match(/\{\{[^\{\}]*\}\}/)) {
+                    array.push(str.substring(0, match.index))
+                    array.push(echo(match[0], ctx))
+                    str = str.substring(match.index + match[0].length)
+                }
+                array.push(str)
+                applyAttrs(parent.addText(array.join('')), me.attrs, ctx)
+            },
+            date(me, parent, ctx) {
+                applyAttrs(parent.addDate(echo(me.attrs.date, ctx)), me.attrs, ctx)
+            },
+            spacer(me, parent, ctx) {
+                parent.addSpacer(echo(me.children[0] || null, ctx))
             }
         }
-        function applyAttrs(obj, attrs) {
-            if (!attrs) { return }
-            for (let key in attrs) {
-                const func = that.getAttrFunc(key)
-                if (func) { func.apply(null, [obj].concat(eval(attrs[key]))) }
+        const that = this
+        const ctx = that.context
+        const root = rootArray[0]
+        if (root.tagName !== 'widget') throw new Error('the rootTag must be <widget>.')
+        const widget = new ListWidget()
+        applyAttrs(widget, root.attrs, ctx)
+        root.children.forEach(child => { pretreat(child, widget, ctx) })
+        return widget
+
+        function pretreat(me, parent, ctx) { // for
+            const forData = me.for ? echo(me.for, ctx) : false
+            if (forData) {
+                let num = 1
+                for (let i in forData) {
+                    process(me, parent, ctx.push({
+                        index: num,
+                        key: i,
+                        value: forData[i]
+                    }))
+                    num++
+                }
+            } else process(me, parent, ctx)
+        }
+
+        function process(me, parent, ctx) {
+            if (me.show && !echo(me.show, ctx)) return // show
+
+            const handleFunc = handleFuncSet[me.tagName]
+            if (handleFunc) { handleFunc(me, parent, ctx); return }
+
+            const cpt = that.component[me.tagName] // component
+            if (cpt) {
+                that.parse(cpt.replace(/\{\{\s*?#(.+)\s*?\}\}/g, (a, b) => {
+                    return me.bind ? (me.bind[b] || null) : null
+                })).forEach(ele => { pretreat(ele, parent, ctx) })
+            } else log('<' + me.tagName + '> is a wrong tag type.')
+        }
+
+        function echo(exp, ctx) {
+            if (typeof exp !== 'string') return exp // not string
+            const match = exp.match(/\{\{\s*([^\{\}]*)\s*\}\}/)
+            if (!match) return eval(exp) // not exp
+            exp = match[1]
+            if (/^(?:true|false|NaN|undefined|null)$/.test(exp)) return eval(exp) // not path
+            const path = getPath(exp)
+            if (!path) return eval(exp) // not path
+            return ctx.lookup(path)
+        }
+
+        function getPath(exp) {
+            if (typeof exp !== 'string') { return false }
+            let match, array = []
+            if (match = exp.match(/^[a-zA-Z][a-zA-Z0-9]*/)) {
+                exp = exp.substring(match[0].length)
+                array.push(match[0])
             }
+            while (match = exp.match(/^\[([a-zA-Z0-9'"]+)\]|^\.{1}([a-zA-Z0-9]+)/)) {
+                array.push(match[1] || match[2])
+                exp = exp.substring(match[0].length)
+            }
+            return exp ? false : array
+        }
+
+        function applyAttrs(obj, attrs, ctx) {
+            if (!attrs) { return }
+            for (let key in attrs)
+                that.getAttrFunc(key)?.apply(null, [obj].concat(echo(attrs[key], ctx)))
         }
     }
 
@@ -274,15 +302,15 @@ class WidgetQ {
             timeStyle(obj) { obj.applyTimeStyle() },
         }[key]
     }
+}
 
-    async generateAlert(message, options) {
-        let alert = new Alert()
-        alert.message = message
-        for (const option of options) {
-            alert.addAction(option)
-        }
-        return await alert.presentAlert()
+async function generateAlert(message, options) {
+    let alert = new Alert()
+    alert.message = message
+    for (const option of options) {
+        alert.addAction(option)
     }
+    return await alert.presentAlert()
 }
 
 module.exports = WidgetQ
