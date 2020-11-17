@@ -26,7 +26,7 @@ class WidgetQ {
     constructor(config) {
         this.template = config.template // small、medium、large
         this.context = new Context(config.data, null) // ① attrs：{{example}}；② text：{{example}}
-        this.component = config.component // { tagName: `` , ... }
+        this.component = config.component // { tagName: `` }
     }
 
     async show() {
@@ -61,12 +61,18 @@ class WidgetQ {
         while (last = labelText) {
             if (index = labelText.indexOf('<')) {
                 match = labelText.substring(0, index)
-                handleInner(match)
+                if (!match.trim()) currentParent.children.push(match)
                 go(index)
             } else {
                 if (match = labelText.match(regexp.matchEndTag)) {
                     go(match[0].length)
-                    handleEndTag(match)
+                    for (let i = stack.length - 1; i >= 0; i--) {
+                        if (stack[i].tagName === match[1]) {
+                            stack.splice(i)
+                            currentParent = stack[stack.length - 1]
+                            break
+                        }
+                    }
                     continue
                 }
                 if (match = labelText.match(regexp.matchStartTag)) {
@@ -85,7 +91,7 @@ class WidgetQ {
 
         function handleStartTag(match) {
             let attrMatch, forEach, show, bind = {}
-            let rawAttrs = [], attrs = null
+            let rawAttrs = [], attrs = {}
             while (attrMatch = labelText.match(regexp.matchAttr)) {
                 rawAttrs.push(attrMatch)
                 go(attrMatch[0].length)
@@ -93,7 +99,6 @@ class WidgetQ {
             go(labelText.match(/^\s*>/)[0].length)
 
             if (rawAttrs.length !== 0) {
-                attrs = {}
                 rawAttrs.forEach(e => {
                     const val = e[2] || e[3] || e[4] || e[5] || e[6] || null
                     if (e[1] === 'for') { forEach = val; return }
@@ -117,23 +122,6 @@ class WidgetQ {
             currentParent = tag
         }
 
-        function handleEndTag(match) {
-            for (let i = stack.length - 1; i >= 0; i--) {
-                if (stack[i].tagName === match[1]) {
-                    stack.splice(i)
-                    currentParent = stack[stack.length - 1]
-                    break
-                }
-            }
-        }
-
-        function handleInner(match) {
-            const inner = match.match(/^(\s)+$/) ? match.trim() : match
-            if (inner !== '') {
-                currentParent.children.push(inner)
-            }
-        }
-
         function createTag(tagName, attrs) {
             return {
                 tagName: tagName,
@@ -144,7 +132,7 @@ class WidgetQ {
     }
 
     render(rootArray) {
-        const handleFuncSet = {
+        const hdlFuncSet = {
             stack(me, parent, ctx) {
                 const stack = parent.addStack()
                 applyAttrs(stack, me.attrs, ctx)
@@ -197,8 +185,8 @@ class WidgetQ {
         function process(me, parent, ctx) {
             if (me.show && !echo(me.show, ctx)) return // show
 
-            const handleFunc = handleFuncSet[me.tagName]
-            if (handleFunc) { handleFunc(me, parent, ctx); return }
+            const func = hdlFuncSet[me.tagName]
+            if (func) { func(me, parent, ctx); return }
 
             const cpt = that.component[me.tagName] // component
             if (cpt) {
@@ -233,10 +221,11 @@ class WidgetQ {
             return exp ? false : array
         }
 
-        function applyAttrs(obj, attrs, ctx) {
-            if (!attrs) { return }
-            for (let key in attrs)
-                that.getAttrFunc(key)?.apply(null, [obj].concat(echo(attrs[key], ctx)))
+        function applyAttrs(ele, attrs, ctx) {
+            for (let key in attrs) {
+                if (!key) return
+                that.getAttrFunc(key)?.apply(null, [ele].concat(echo(attrs[key], ctx)))
+            }
         }
     }
 
