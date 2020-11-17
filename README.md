@@ -11,7 +11,7 @@ let Widget = importModule('core')
 const wq = new Widget({
     // 放置需要用到的数据
     data: {
-        example:''
+        example:'hello'
     },
     // 填写小组件的标签模板
     template: {
@@ -21,10 +21,7 @@ const wq = new Widget({
     },
     // 填写自定义组件标签
     component: {
-        tagName: {
-            props: [],
-            template: ``
-        }
+        tagName:``
     }
 })
 // 根据template自动创建小组件
@@ -39,7 +36,7 @@ Script.complete()
 
 > 注意：括号内为原属性名称。
 
-#### \<widget>
+#### `<widget>`
 
 - 作为根标签，不能缺少。
 - 属性：bgColor（backgroundColor）、bgGrad（backgroundGradient）、bgImg（backgroundImage）、refreshAfterDate、spacing、url
