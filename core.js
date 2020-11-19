@@ -52,7 +52,7 @@ class WidgetQ {
         const regexp = {
             matchEndTag: /^<\/\s*([a-zA-Z]+)\s*>/,
             matchStartTag: /^<([a-zA-Z0-9]+)/,
-            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false|null|undefined|NaN)|([0-9\.]+)|("[^"]*")|('[^']*')|(\{\{[^\{\}]*\}\})))?/
+            matchAttr: /^\s*([^\s"'<>\/=]+)(?:\s*=\s*(?:(true|false|null|undefined|NaN)|([0-9\.]+)|("[^"]*")|('[^']*')|(\{\{.*?\}\})))?/
         }
         let currentParent, last, index, match
         let stack = [], rootArray = []
@@ -143,7 +143,7 @@ class WidgetQ {
             },
             text(me, parent, ctx) {
                 let match, array = [], str = me.children[0]
-                while (match = str.match(/\{\{[^\{\}]*\}\}/)) {
+                while (match = str.match(/\{\{.*?\}\}/)) {
                     array.push(str.substring(0, match.index))
                     array.push(echo(match[0], ctx))
                     str = str.substring(match.index + match[0].length)
@@ -190,7 +190,7 @@ class WidgetQ {
 
             const cpt = that.component[me.tagName] // component
             if (cpt) {
-                that.parse(cpt.replace(/\{\{\s*?#(.+)\s*?\}\}/g, (a, b) => {
+                that.parse(cpt.replace(/\{\{\s*?#([^\s]+)\s*?\}\}/g, (a, b) => {
                     return me.bind ? (me.bind[b] || null) : null
                 })).forEach(ele => { pretreat(ele, parent, ctx) })
             } else log('<' + me.tagName + '> is a wrong tag type.')
@@ -198,7 +198,7 @@ class WidgetQ {
 
         function echo(exp, ctx) {
             if (typeof exp !== 'string') return exp // not string
-            const match = exp.match(/\{\{\s*([^\{\}]*)\s*\}\}/)
+            const match = exp.match(/\{\{\s*([^\s]+)\s*\}\}/)
             if (!match) return eval(exp) // not exp
             exp = match[1]
             if (/^(?:true|false|NaN|undefined|null)$/.test(exp)) return eval(exp) // not path
