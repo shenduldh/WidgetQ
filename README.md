@@ -6,12 +6,12 @@ WidgetQ根据HTML和Vue的一些特性对Scriptable构建小组件进行了封�
 
 ```javascript
 // 导入Widget，务必在同目录下有 core.js 文件
-let WidgetQ = importModule('core')
+const WidgetQ = importModule('core')
 // 创建 WidgetQ
 const wq = new WidgetQ({
     // 放置需要用到的数据
     data: {
-        dataName:'hello'
+        example:'hello'
     },
     // 填写小组件的标签模板
     template: {
