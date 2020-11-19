@@ -26,7 +26,7 @@ class WidgetQ {
     constructor(config) {
         this.template = config.template // small、medium、large
         this.context = new Context(config.data, null) // ① attrs：{{example}}；② text：{{example}}
-        this.component = config.component // { tagName: `` }
+        this.component = config.component || {} // { tagName: `` }
     }
 
     async show() {
@@ -61,7 +61,7 @@ class WidgetQ {
         while (last = labelText) {
             if (index = labelText.indexOf('<')) {
                 match = labelText.substring(0, index)
-                if (!match.trim()) currentParent.children.push(match)
+                if (match.trim()) currentParent.children.push(match)
                 go(index)
             } else {
                 if (match = labelText.match(regexp.matchEndTag)) {
