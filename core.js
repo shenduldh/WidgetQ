@@ -24,9 +24,9 @@ class Context {
 
 class WidgetQ {
     constructor(config) {
-        this.template = config.template // small、medium、large
-        this.context = new Context(config.data, null) // ① attrs：{{example}}；② text：{{example}}
-        this.component = config.component || {} // { tagName: `` }
+        this.template = config.template || {}
+        this.data = config.data || {}
+        this.component = config.component || {}
     }
 
     async show() {
@@ -159,7 +159,7 @@ class WidgetQ {
             }
         }
         const that = this
-        const ctx = that.context
+        const ctx = new Context(this.data, null)
         const root = rootArray[0]
         if (root.tagName !== 'widget') throw new Error('the rootTag must be <widget>.')
         const widget = new ListWidget()
@@ -236,7 +236,7 @@ class WidgetQ {
             bgColor(obj, color) { obj.backgroundColor = color },
             bgGrad(obj, gradient) { obj.backgroundGradient = gradient },
             bgImg(obj, image) { obj.backgroundImage = image },
-            spacing(obj, number) { obj.backgroundColor = number },
+            spacing(obj, number) { obj.spacing = number },
             // stack
             size(obj, size) { obj.size = size },
             // widget
