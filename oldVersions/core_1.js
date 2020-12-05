@@ -1,6 +1,6 @@
 /* 版本说明：
 ** 该版本采用路径拆分法解析路径表达式。
- */
+*/
 
 class Context {
     constructor(data, parentContext) {

@@ -1,24 +1,19 @@
+/* 版本说明：
+** 该版本借助with原理来解析表达式，扩展了表达式的用法。
+*/
+
 class Context {
-    constructor(data, parentContext) {
+    constructor(data) {
         this.data = data
-        this.parent = parentContext
     }
     push(data) {
-        return new Context(data, this)
-    }
-    lookup(path) {
-        let value, index
-        let context = this
-        while (context) {
-            value = context.data
-            index = 0
-            while (value && index < path.length) {
-                value = value[path[index++]]
-            }
-            if (value) break
-            context = context.parent
+        for (let k in this.data) {
+            data[k] = this.data[k]
         }
-        return value
+        return new Context(data)
+    }
+    pop() {
+        return this.data
     }
 }
 
@@ -159,7 +154,7 @@ class WidgetQ {
             }
         }
         const that = this
-        const ctx = new Context(this.data, null)
+        const ctx = new Context(this.data)
         const root = rootArray[0]
         if (root.tagName !== 'widget') throw new Error('the rootTag must be <widget>.')
         const widget = new ListWidget()
@@ -201,24 +196,16 @@ class WidgetQ {
             const match = exp.match(/\{\{\s*([^\s]+)\s*\}\}/)
             if (!match) return eval(exp) // not exp
             exp = match[1]
-            if (/^(?:true|false|NaN|undefined|null)$/.test(exp)) return eval(exp) // not path
-            const path = getPath(exp)
-            if (!path) return eval(exp) // not path
-            return ctx.lookup(path)
-        }
-
-        function getPath(exp) {
-            if (typeof exp !== 'string') { return false }
-            let match, array = []
-            if (match = exp.match(/^[a-zA-Z][a-zA-Z0-9]*/)) {
-                exp = exp.substring(match[0].length)
-                array.push(match[0])
+            let data = ctx.pop()
+            let str = '{'
+            for (let k in data) {
+                str += k + ','
             }
-            while (match = exp.match(/^\[([a-zA-Z0-9'"]+)\]|^\.{1}([a-zA-Z0-9]+)/)) {
-                array.push(match[1] || match[2])
-                exp = exp.substring(match[0].length)
-            }
-            return exp ? false : array
+            str = str.substring(0, str.length - 1) + '}'
+            return new Function('data', `
+                const ${str}={...data};
+                return ${exp}
+            `)(data)
         }
 
         function applyAttrs(ele, attrs, ctx) {
