@@ -198,10 +198,10 @@ class WidgetQ {
             exp = match[1]
             let data = ctx.pop()
             let str = '{'
-            for (let k in data) {
-                str += k + ','
-            }
-            str = str.substring(0, str.length - 1) + '}'
+            if (Object.keys(data).length !== 0) {
+                for (let k in data) { str += k + ',' }
+                str = str.substring(0, str.length - 1) + '}'
+            } else { str = '{}' }
             return new Function('data', `
                 const ${str}={...data};
                 return ${exp}
