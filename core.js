@@ -4,13 +4,17 @@
 
 class Context {
     constructor(data) {
-        this.data = data
+        this.data = data || {}
     }
-    push(data) {
+    push(newData) {
+        let copyData = {}
         for (let k in this.data) {
-            data[k] = this.data[k]
+            copyData[k] = this.data[k]
         }
-        return new Context(data)
+        for (let k in newData) {
+            copyData[k] = newData[k]
+        }
+        return new Context(copyData)
     }
     pop() {
         return this.data
