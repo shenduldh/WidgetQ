@@ -52,7 +52,7 @@ Script.complete()
 
 #### `<image>` 
 
-- 属性：`img（image）、borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url`
+- 属性：`img（image）、borderColor、borderWidth、containerRelativeShape、imageOpacity、imageSize、resizable、tintColor、url、cornerRadius`
 
 - 方法：`filling（applyFillingContentMode）、fitting（applyFittingContentMode）、centerAlignImage、leftAlignImage、rightAlignImage`
 
