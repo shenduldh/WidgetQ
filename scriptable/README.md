@@ -1,1 +1,1 @@
-分享一些Scriptable小组件或知识。
+分享一些 scriptable 相关的小组件或知识。
