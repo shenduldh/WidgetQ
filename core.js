@@ -158,7 +158,7 @@ class WidgetQ {
             }
         }
         const that = this
-        const ctx = new Context(this.data)
+        const ctx = new Context(that.data)
         const root = rootArray[0]
         if (root.tagName !== 'widget') throw new Error('the rootTag must be <widget>.')
         const widget = new ListWidget()
